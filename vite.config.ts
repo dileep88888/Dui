@@ -1,11 +1,33 @@
 import tailwindcss from '@tailwindcss/vite';
-import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig} from 'vite';
+import { defineConfig, Plugin } from 'vite';
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      tailwindcss(),
+      {
+        name: 'serve-style-css',
+        configureServer(server) {
+          server.middlewares.use(async (req, res, next) => {
+            const url = req.url || '';
+            if (url === '/style.css' || url.startsWith('/style.css?')) {
+              try {
+                const result = await server.transformRequest('/style.css?direct');
+                if (result) {
+                  res.setHeader('Content-Type', 'text/css');
+                  res.end(result.code);
+                  return;
+                }
+              } catch (e) {
+                console.error('Error transforming style.css:', e);
+              }
+            }
+            next();
+          });
+        },
+      } as Plugin,
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
