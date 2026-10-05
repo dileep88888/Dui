@@ -1,0 +1,6 @@
+{
+  "name": "Chicken vs Zombies: Crazy Chick Crash",
+  "description": "An arcade crash and lane-defense game where crazy chickens smash zombies, build multipliers along the graveyard path, collect coins, and upgrade sunflower farms.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  --font-comic: 'Luckiest Guy', cursive, sans-serif;
+  --font-display: 'Fredoka', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-comic {
+  font-family: 'Luckiest Guy', cursive, sans-serif;
+  letter-spacing: 0.03em;
+}
+
+.font-display {
+  font-family: 'Fredoka', sans-serif;
+}
+
+.font-body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Custom text stroke utilities for comic cartoon styling */
+.text-stroke-sm {
+  -webkit-text-stroke: 1.5px #111827;
+}
+
+.text-stroke-md {
+  -webkit-text-stroke: 2.5px #0f172a;
+}
+
+.text-stroke-lg {
+  -webkit-text-stroke: 4px #020617;
+}
+
+.text-stroke-yellow {
+  -webkit-text-stroke: 2px #ca8a04;
+}
+
+/* Screen shake */
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-4px, 3px) rotate(-0.5deg); }
+  40% { transform: translate(4px, -3px) rotate(0.5deg); }
+  60% { transform: translate(-3px, -2px) rotate(-0.25deg); }
+  80% { transform: translate(3px, 2px) rotate(0.25deg); }
+}
+
+.animate-shake {
+  animation: screen-shake 0.25s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Floating animation */
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: float-gentle 2.4s ease-in-out infinite;
+}
+
+/* Starburst pop */
+@keyframes starburst-pop {
+  0% { transform: scale(0.4) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(15deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.animate-starburst {
+  animation: starburst-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
