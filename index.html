@@ -4,18 +4,253 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Chicken Fight</title>
-    <meta name="description" content="Chicken Fight - Face aggressive zombies, fight for increasing multipliers along the path, and check out with cash!" />
+    <meta name="description" content="Chicken Fight - Face aggressive zombies, fight for increasing multipliers along the path, and claim cash!" />
     <meta property="og:title" content="Chicken Fight" />
-    <meta property="og:description" content="Chicken Fight - Face aggressive zombies, fight for increasing multipliers along the path, and check out with cash!" />
+    <meta property="og:description" content="Chicken Fight - Face aggressive zombies, fight for increasing multipliers along the path, and claim cash!" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;800&family=Luckiest+Guy&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
   </head>
-  <body class="bg-slate-950 text-slate-100 antialiased select-none overflow-x-hidden">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+  <body class="bg-slate-950 text-slate-100 antialiased select-none overflow-x-hidden min-h-screen flex flex-col font-body">
+    <!-- Header -->
+    <header class="flex items-center justify-between px-4 lg:px-8 py-3 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-slate-100 z-30 sticky top-0">
+      <div class="flex items-center gap-2">
+        <span class="font-comic text-xl lg:text-2xl text-amber-400 tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
+          🐔 Chicken Fight
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <!-- Money Counter -->
+        <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-800/90 border border-amber-500/40 rounded-xl shadow-sm">
+          <span class="text-amber-400 text-sm font-bold">💰</span>
+          <span id="header-balance" class="font-comic text-base lg:text-lg text-amber-300 tabular-nums">$100.00</span>
+          <button id="btn-add-funds" class="hidden text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2 py-0.5 rounded cursor-pointer transition-colors">+Refill</button>
+        </div>
+
+        <!-- Audio & Help Controls -->
+        <button id="btn-toggle-sound" class="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer" title="Toggle Sound">
+          <span id="sound-icon">🔊</span>
+        </button>
+        <button id="btn-toggle-music" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer" title="Toggle Music">
+          <span id="music-icon">🎵</span>
+        </button>
+        <button id="btn-open-help" class="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer" title="Instructions">
+          <span>❓</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Battlefield Arena -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <!-- Game Canvas Container -->
+      <div id="canvas-container" class="relative w-full overflow-hidden rounded-2xl border-4 border-slate-800 bg-slate-950 shadow-2xl cursor-pointer">
+        <canvas id="game-canvas" class="w-full h-[380px] sm:h-[460px] lg:h-[500px] block"></canvas>
+      </div>
+
+      <!-- Control Panel -->
+      <div id="control-panel" class="w-full bg-slate-900/95 border-2 border-slate-800 rounded-2xl p-4 lg:p-6 shadow-xl backdrop-blur-md">
+        <!-- 1. READY STATE (Stake & PLAY) -->
+        <div id="panel-ready" class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="flex-1 w-full space-y-2">
+            <div class="flex items-center justify-between text-xs font-display text-slate-400">
+              <span class="font-semibold uppercase tracking-wider">Battle Stake ($)</span>
+              <span>Balance: <span id="ready-balance-text">$100.00</span></span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <div class="relative flex-1">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-400 font-bold">$</span>
+                <input
+                  id="input-stake"
+                  type="number"
+                  min="1"
+                  max="1000"
+                  value="10"
+                  class="w-full pl-8 pr-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-lg font-comic text-amber-300 focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <!-- Quick Multipliers -->
+              <div class="flex items-center gap-1.5">
+                <button id="btn-stake-half" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-display font-bold text-slate-300 rounded-lg transition-colors cursor-pointer">½</button>
+                <button id="btn-stake-double" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-display font-bold text-slate-300 rounded-lg transition-colors cursor-pointer">2×</button>
+                <button id="btn-stake-max" class="px-2.5 py-2 bg-slate-800 hover:bg-amber-600/40 text-xs font-display font-bold text-amber-400 rounded-lg transition-colors cursor-pointer">MAX</button>
+              </div>
+            </div>
+
+            <!-- Preset Stake Chips -->
+            <div class="flex items-center gap-1.5 pt-1 overflow-x-auto">
+              <button class="btn-preset-stake px-3 py-1 rounded-md text-xs font-display font-semibold bg-slate-800/80 text-slate-400 hover:text-white cursor-pointer" data-val="5">$5</button>
+              <button class="btn-preset-stake px-3 py-1 rounded-md text-xs font-display font-semibold bg-amber-500 text-slate-950 font-bold shadow-md cursor-pointer" data-val="10">$10</button>
+              <button class="btn-preset-stake px-3 py-1 rounded-md text-xs font-display font-semibold bg-slate-800/80 text-slate-400 hover:text-white cursor-pointer" data-val="25">$25</button>
+              <button class="btn-preset-stake px-3 py-1 rounded-md text-xs font-display font-semibold bg-slate-800/80 text-slate-400 hover:text-white cursor-pointer" data-val="50">$50</button>
+              <button class="btn-preset-stake px-3 py-1 rounded-md text-xs font-display font-semibold bg-slate-800/80 text-slate-400 hover:text-white cursor-pointer" data-val="100">$100</button>
+            </div>
+          </div>
+
+          <!-- THE PLAY BUTTON -->
+          <div class="w-full md:w-auto flex flex-col items-center gap-2">
+            <button
+              id="btn-play"
+              class="w-full md:w-64 py-4 px-8 rounded-2xl font-comic text-2xl tracking-wider transition-all transform active:scale-95 shadow-xl cursor-pointer flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500 text-slate-950 hover:brightness-110 shadow-emerald-500/30 border-2 border-emerald-300"
+            >
+              <span class="text-2xl">▶</span>
+              <span>PLAY</span>
+            </button>
+            <span class="text-[11px] font-display text-slate-400">Fight zombies to multiply stake · Claim anytime</span>
+          </div>
+        </div>
+
+        <!-- 2. FIGHTING STATE (FIGHT & CLAIM IN ONE SINGLE ROW) -->
+        <div id="panel-fighting" class="space-y-4 hidden">
+          <!-- Live Battle Info -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950/80 p-3 rounded-xl border border-slate-800">
+            <div class="flex items-center gap-3 px-4 py-2.5 bg-amber-500/10 border-l-4 border-amber-400 rounded-r-lg">
+              <div>
+                <div class="text-[11px] font-display text-slate-400 uppercase font-semibold">Current Multiplier</div>
+                <div class="font-comic text-2xl lg:text-3xl text-amber-300 tracking-tight flex items-baseline gap-1.5">
+                  <span id="fight-multiplier-text">1.00x</span>
+                  <span class="text-xs text-amber-500 font-bold animate-ping">▲</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 px-4 py-2.5 bg-emerald-500/10 border-l-4 border-emerald-400 rounded-r-lg">
+              <div>
+                <div class="text-[11px] font-display text-slate-400 uppercase font-semibold">Bankable Cash</div>
+                <div id="fight-bankable-text" class="font-comic text-2xl lg:text-3xl text-emerald-400 tracking-tight">$10.00</div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 px-4 py-2.5 bg-cyan-500/10 border-l-4 border-cyan-400 rounded-r-lg">
+              <div>
+                <div class="text-[11px] font-display text-slate-400 uppercase font-semibold">Current Stake</div>
+                <div id="fight-stake-text" class="font-comic text-2xl lg:text-3xl text-cyan-300 tracking-tight">$10.00</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACTION BUTTONS: FIGHT & CLAIM IN ONE ROW -->
+          <div class="flex flex-row items-center gap-2 sm:gap-4 pt-1 w-full">
+            <!-- 1. FIGHT BUTTON -->
+            <button
+              id="btn-fight"
+              class="flex-1 py-3.5 sm:py-4 px-3 sm:px-6 rounded-2xl bg-gradient-to-r from-rose-500 via-red-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 text-white font-comic text-lg sm:text-xl lg:text-2xl shadow-xl shadow-rose-600/35 border-2 border-rose-300 active:scale-95 transition-all flex items-center justify-center gap-2 sm:gap-3 cursor-pointer"
+            >
+              <span class="text-2xl">⚔️</span>
+              <span>FIGHT</span>
+              <kbd class="hidden lg:inline text-xs bg-rose-900/80 px-2 py-0.5 rounded text-rose-200 font-mono">SPACE</kbd>
+            </button>
+
+            <!-- 2. CLAIM BUTTON -->
+            <button
+              id="btn-claim"
+              class="flex-1 py-3.5 sm:py-4 px-3 sm:px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-comic text-lg sm:text-xl lg:text-2xl shadow-xl shadow-emerald-500/35 border-2 border-emerald-300 active:scale-95 transition-all flex items-center justify-center gap-2 sm:gap-3 cursor-pointer"
+            >
+              <span class="text-2xl">💰</span>
+              <span>CLAIM</span>
+              <span id="claim-amount-badge" class="text-xs sm:text-sm bg-emerald-950/80 text-emerald-300 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded font-mono font-bold whitespace-nowrap">$10.00</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. ROUND FINISHED STATE -->
+        <div id="panel-finished" class="flex flex-col sm:flex-row items-center justify-between gap-4 p-2 hidden">
+          <div class="flex items-center gap-3">
+            <div id="finished-icon-box" class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl border bg-emerald-500/20 border-emerald-500/50">🏆</div>
+            <div>
+              <div id="finished-title-text" class="font-comic text-xl text-slate-100">CLAIMED: +$12.50!</div>
+              <div id="finished-desc-text" class="text-xs font-display text-slate-400">Won at 1.25x multiplier!</div>
+            </div>
+          </div>
+          <button id="btn-play-again-panel" class="w-full sm:w-auto py-3.5 px-8 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:brightness-110 text-slate-950 font-comic text-xl flex items-center justify-center gap-2 shadow-lg cursor-pointer">
+            <span>▶ PLAY AGAIN</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Result Modal (Defeat / Victory) -->
+    <div id="modal-result" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden">
+      <div class="relative w-full max-w-md bg-slate-900 border-2 border-slate-700 rounded-3xl p-6 shadow-2xl overflow-hidden text-center animate-starburst">
+        <div id="modal-backdrop-glow" class="absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full blur-3xl pointer-events-none bg-emerald-500/20"></div>
+        <button id="btn-close-result-modal" class="absolute top-4 right-4 p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer">✕</button>
+        <div id="modal-result-icon" class="mx-auto w-20 h-20 rounded-2xl flex items-center justify-center text-4xl mb-4 border shadow-inner">🏆</div>
+        <h3 id="modal-result-title" class="font-comic text-2xl lg:text-3xl text-slate-100">SWEET CLAIM!</h3>
+        <p id="modal-result-subtitle" class="text-xs font-display text-slate-400 mt-1">Successfully claimed with a 1.25x multiplier!</p>
+
+        <div class="my-6 p-4 rounded-2xl bg-slate-950/80 border border-slate-800 grid grid-cols-2 gap-3">
+          <div class="p-3 bg-slate-900/60 rounded-xl">
+            <div class="text-[11px] font-display text-slate-400 uppercase font-semibold">Final Multiplier</div>
+            <div id="modal-result-multiplier" class="font-comic text-2xl text-amber-300">1.25x</div>
+          </div>
+          <div class="p-3 bg-slate-900/60 rounded-xl">
+            <div id="modal-result-cash-label" class="text-[11px] font-display text-slate-400 uppercase font-semibold">Cash Banked</div>
+            <div id="modal-result-cash-value" class="font-comic text-2xl text-emerald-400">+$12.50</div>
+          </div>
+        </div>
+
+        <button id="btn-play-again-modal" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:brightness-110 text-slate-950 font-comic text-xl flex items-center justify-center gap-2 shadow-lg cursor-pointer">
+          <span>▶ PLAY AGAIN</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div id="modal-instructions" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden">
+      <div class="relative w-full max-w-lg bg-slate-900 border-2 border-slate-700 rounded-3xl p-6 shadow-2xl overflow-hidden animate-starburst">
+        <button id="btn-close-instructions-modal" class="absolute top-4 right-4 p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer">✕</button>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-2xl">📖</span>
+          <h2 class="font-comic text-2xl text-slate-100">How to Play: Chicken Fight</h2>
+        </div>
+        <p class="text-xs font-display text-slate-400 mb-6">Simple 3-step action: Set your stake, fight oncoming zombies, and claim multiplied cash!</p>
+
+        <div class="space-y-4">
+          <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3">
+            <div class="p-2.5 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0 text-xl">▶</div>
+            <div>
+              <h4 class="font-display font-bold text-slate-200 text-sm">1. Set Stake & Hit PLAY</h4>
+              <p class="text-xs font-display text-slate-400 mt-0.5">Choose your battle stake and click <strong>PLAY</strong>. Your chicken walks up to the first zombie and <strong>STOPS</strong> face-to-face!</p>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3">
+            <div class="p-2.5 rounded-lg bg-rose-500/20 text-rose-400 shrink-0 text-xl">⚔️</div>
+            <div>
+              <h4 class="font-display font-bold text-slate-200 text-sm">2. Click FIGHT (Attack & Advance)</h4>
+              <p class="text-xs font-display text-slate-400 mt-0.5">Hit <kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-slate-300 font-mono text-[10px]">SPACE</kbd> or click <strong>FIGHT</strong>:</p>
+              <ul class="text-xs text-slate-400 mt-2 space-y-1 list-disc list-inside">
+                <li><strong class="text-amber-400">If You Win:</strong> Smashes the zombie, unlocks that checkpoint's multiplier (1.05x, 1.10x, 1.15x, 1.20x...), dashes to the next zombie, and <strong>STOPS</strong>!</li>
+                <li><strong class="text-rose-400">If Countered:</strong> The zombie counters and crashes your chicken, ending the round.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3">
+            <div class="p-2.5 rounded-lg bg-yellow-500/20 text-yellow-400 shrink-0 text-xl">💰</div>
+            <div>
+              <h4 class="font-display font-bold text-slate-200 text-sm">3. CLAIM (Bank Winnings Anytime)</h4>
+              <p class="text-xs font-display text-slate-400 mt-0.5">While stopped at any multiplier milestone, click <strong>CLAIM</strong> (<kbd class="px-1 py-0.5 bg-slate-800 rounded text-slate-300 font-mono text-[10px]">C</kbd>) to safely bank your multiplied earnings (Stake × Multiplier)!</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <button id="btn-got-it" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 text-slate-950 font-comic text-lg hover:brightness-110 shadow-lg cursor-pointer">GOT IT, LET'S BATTLE!</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950/80 py-4 text-center text-xs text-slate-500 font-display">
+      <span>Chicken Fight · Fight and Claim</span>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
-
